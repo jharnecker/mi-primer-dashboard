@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moda Sofía — Dashboard de Ventas</title>
+<style>
+  /* ===== Variables de color (tema oscuro) ===== */
+  :root {
+    --bg-principal: #0f1117;
+    --bg-tarjeta: #1a1d29;
+    --bg-tarjeta-hover: #21253361;
+    --borde: #2a2e3f;
+    --texto-principal: #f1f2f6;
+    --texto-secundario: #9296a8;
+    --acento-primario: #a855f7;
+    --acento-secundario: #ec4899;
+    --exito: #22c55e;
+    --alerta: #f59e0b;
+    --peligro: #ef4444;
+    --sombra: rgba(0, 0, 0, 0.35);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(circle at top left, #191c28, var(--bg-principal) 60%);
+    color: var(--texto-principal);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  /* ===== Animación de entrada suave ===== */
+  @keyframes aparecer {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in {
+    opacity: 0;
+    animation: aparecer 0.6s ease forwards;
+  }
+
+  /* ===== Encabezado ===== */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    max-width: 1200px;
+    margin: 0 auto 28px;
+  }
+
+  .marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .marca .logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--acento-primario), var(--acento-secundario));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .marca h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .marca span {
+    color: var(--texto-secundario);
+    font-size: 0.85rem;
+  }
+
+  .fecha-actual {
+    color: var(--texto-secundario);
+    font-size: 0.9rem;
+    background: var(--bg-tarjeta);
+    border: 1px solid var(--borde);
+    padding: 8px 14px;
+    border-radius: 10px;
+  }
+
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ===== Tarjetas de métricas ===== */
+  .metricas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .tarjeta {
+    background: var(--bg-tarjeta);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 14px var(--sombra);
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+
+  .tarjeta:hover {
+    transform: translateY(-4px);
+    background: var(--bg-tarjeta-hover);
+  }
+
+  .tarjeta .icono {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+  }
+
+  .tarjeta .etiqueta {
+    color: var(--texto-secundario);
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+
+  .tarjeta .valor {
+    font-size: 1.7rem;
+    font-weight: 700;
+  }
+
+  .tarjeta .cambio {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .cambio.positivo { color: var(--exito); }
+  .cambio.negativo { color: var(--peligro); }
+
+  /* ===== Sección de gráfico ===== */
+  .panel {
+    background: var(--bg-tarjeta);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 14px var(--sombra);
+  }
+
+  .panel-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .panel-titulo h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .panel-titulo .leyenda {
+    color: var(--texto-secundario);
+    font-size: 0.8rem;
+  }
+
+  #grafico-ventas {
+    width: 100%;
+    height: 260px;
+  }
+
+  /* ===== Tabla de transacciones ===== */
+  .tabla-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+  }
+
+  thead th {
+    text-align: left;
+    color: var(--texto-secundario);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--borde);
+  }
+
+  tbody td {
+    padding: 12px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--borde);
+  }
+
+  tbody tr {
+    transition: background 0.2s ease;
+  }
+
+  tbody tr:hover {
+    background: var(--bg-tarjeta-hover);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--texto-secundario);
+    font-size: 0.8rem;
+    margin: 30px 0 10px;
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 14px; }
+    .marca h1 { font-size: 1.15rem; }
+    .tarjeta .valor { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="fade-in">
+    <div class="marca">
+      <div class="logo">👗</div>
+      <div>
+        <h1>Moda Sofía</h1>
+        <span>Dashboard de ventas</span>
+      </div>
+    </div>
+    <div class="fecha-actual" id="fecha-hoy"></div>
+  </header>
+
+  <main>
+    <!-- Tarjetas con las métricas principales -->
+    <section class="metricas">
+      <div class="tarjeta fade-in" style="animation-delay: 0.05s">
+        <div class="icono">💰</div>
+        <div class="etiqueta">Ventas del mes</div>
+        <div class="valor">$4.582.300</div>
+        <div class="cambio positivo">▲ 12.4% vs. mes anterior</div>
+      </div>
+      <div class="tarjeta fade-in" style="animation-delay: 0.15s">
+        <div class="icono">✨</div>
+        <div class="etiqueta">Clientes nuevos</div>
+        <div class="valor">57</div>
+        <div class="cambio positivo">▲ 19.7% vs. mes anterior</div>
+      </div>
+      <div class="tarjeta fade-in" style="animation-delay: 0.25s">
+        <div class="icono">👗</div>
+        <div class="etiqueta">Productos vendidos</div>
+        <div class="valor">214</div>
+        <div class="cambio negativo">▼ 3.2% vs. mes anterior</div>
+      </div>
+      <div class="tarjeta fade-in" style="animation-delay: 0.35s">
+        <div class="icono">📈</div>
+        <div class="etiqueta">Ingresos totales</div>
+        <div class="valor">$18.940.500</div>
+        <div class="cambio positivo">▲ 9.6% vs. mes anterior</div>
+      </div>
+    </section>
+
+    <!-- Gráfico de ventas por mes -->
+    <section class="panel fade-in" style="animation-delay: 0.45s">
+      <div class="panel-titulo">
+        <h2>Ventas por mes</h2>
+        <span class="leyenda">Últimos 6 meses</span>
+      </div>
+      <svg id="grafico-ventas" viewBox="0 0 600 260" preserveAspectRatio="none"></svg>
+    </section>
+
+    <!-- Tabla de últimas ventas -->
+    <section class="panel fade-in" style="animation-delay: 0.55s">
+      <div class="panel-titulo">
+        <h2>Últimas ventas</h2>
+        <span class="leyenda">Las 5 transacciones más recientes</span>
+      </div>
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Cliente</th>
+              <th>Monto</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-tabla"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Moda Sofía · Datos ficticios de ejemplo · Panel generado con fines de práctica
+  </footer>
+
+<script>
+  // ===== Fecha actual en el encabezado =====
+  const opcionesFecha = { day: 'numeric', month: 'long', year: 'numeric' };
+  document.getElementById('fecha-hoy').textContent =
+    new Date().toLocaleDateString('es-ES', opcionesFecha);
+
+  // ===== Datos ficticios de ventas mensuales =====
+  const ventasMensuales = [
+    { mes: 'Feb', total: 620000 },
+    { mes: 'Mar', total: 745000 },
+    { mes: 'Abr', total: 690000 },
+    { mes: 'May', total: 810000 },
+    { mes: 'Jun', total: 905000 },
+    { mes: 'Jul', total: 1050000 }
+  ];
+
+  // ===== Dibujo del gráfico de barras con SVG =====
+  function dibujarGrafico() {
+    const svg = document.getElementById('grafico-ventas');
+    const ns = 'http://www.w3.org/2000/svg';
+    const ancho = 600, alto = 260;
+    const margenInferior = 30;
+    const maxValor = Math.max(...ventasMensuales.map(v => v.total));
+    const anchoBarra = ancho / ventasMensuales.length;
+
+    // Degradado para las barras
+    const defs = document.createElementNS(ns, 'defs');
+    const gradiente = document.createElementNS(ns, 'linearGradient');
+    gradiente.setAttribute('id', 'degradeBarra');
+    gradiente.setAttribute('x1', '0'); gradiente.setAttribute('y1', '0');
+    gradiente.setAttribute('x2', '0'); gradiente.setAttribute('y2', '1');
+    gradiente.innerHTML = `
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#ec4899" />
+    `;
+    defs.appendChild(gradiente);
+    svg.appendChild(defs);
+
+    ventasMensuales.forEach((dato, i) => {
+      const alturaBarra = (dato.total / maxValor) * (alto - margenInferior - 20);
+      const x = i * anchoBarra + anchoBarra * 0.2;
+      const anchoReal = anchoBarra * 0.6;
+      const y = alto - margenInferior - alturaBarra;
+
+      // Barra (se dibuja en su tamaño final; el crecimiento se anima con CSS
+      // transform en vez de animar los atributos y/height, que la Web
+      // Animations API no interpola de forma confiable en un <rect>)
+      const rect = document.createElementNS(ns, 'rect');
+      rect.setAttribute('x', x);
+      rect.setAttribute('y', y);
+      rect.setAttribute('width', anchoReal);
+      rect.setAttribute('height', alturaBarra);
+      rect.setAttribute('rx', 6);
+      rect.setAttribute('fill', 'url(#degradeBarra)');
+      rect.style.transformBox = 'fill-box';
+      rect.style.transformOrigin = 'bottom';
+      rect.style.transform = 'scaleY(0)';
+      rect.style.transition = `transform 0.7s ease-out ${i * 0.09}s`;
+      svg.appendChild(rect);
+
+      // Dispara la transición en el siguiente frame para que el navegador
+      // registre el estado inicial (scaleY(0)) antes de animar
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          rect.style.transform = 'scaleY(1)';
+        });
+      });
+
+      // Etiqueta de valor sobre la barra (aparece con la misma animación)
+      const valorTexto = document.createElementNS(ns, 'text');
+      valorTexto.setAttribute('x', x + anchoReal / 2);
+      valorTexto.setAttribute('y', y - 8);
+      valorTexto.setAttribute('text-anchor', 'middle');
+      valorTexto.setAttribute('fill', '#9296a8');
+      valorTexto.setAttribute('font-size', '11');
+      valorTexto.setAttribute('font-weight', '600');
+      valorTexto.textContent = '$' + (dato.total / 1000).toFixed(0) + 'K';
+      valorTexto.style.opacity = '0';
+      svg.appendChild(valorTexto);
+      valorTexto.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        { duration: 300, delay: i * 90 + 500, fill: 'forwards', easing: 'ease-out' }
+      );
+
+      // Etiqueta del mes
+      const texto = document.createElementNS(ns, 'text');
+      texto.setAttribute('x', x + anchoReal / 2);
+      texto.setAttribute('y', alto - 8);
+      texto.setAttribute('text-anchor', 'middle');
+      texto.setAttribute('fill', '#9296a8');
+      texto.setAttribute('font-size', '12');
+      texto.textContent = dato.mes;
+      svg.appendChild(texto);
+    });
+  }
+
+  // ===== Datos ficticios de las últimas ventas =====
+  const ultimasVentas = [
+    { fecha: '08 Jul 2026', producto: 'Vestido floral',    cliente: 'Camila Rojas',    monto: '$29.990' },
+    { fecha: '07 Jul 2026', producto: 'Blazer oversize',   cliente: 'Martina López',   monto: '$45.500' },
+    { fecha: '06 Jul 2026', producto: 'Jeans mom fit',     cliente: 'Valentina Soto',  monto: '$21.990' },
+    { fecha: '05 Jul 2026', producto: 'Chaqueta de cuero', cliente: 'Isidora Fuentes', monto: '$68.000' },
+    { fecha: '04 Jul 2026', producto: 'Blusa de seda',     cliente: 'Antonia Reyes',   monto: '$18.750' }
+  ];
+
+  // ===== Renderizado de la tabla =====
+  function renderizarTabla() {
+    const cuerpo = document.getElementById('cuerpo-tabla');
+    cuerpo.innerHTML = ultimasVentas.map(v => `
+      <tr>
+        <td>${v.fecha}</td>
+        <td>${v.producto}</td>
+        <td>${v.cliente}</td>
+        <td>${v.monto}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ===== Inicialización =====
+  dibujarGrafico();
+  renderizarTabla();
+</script>
+
+</body>
+</html>
